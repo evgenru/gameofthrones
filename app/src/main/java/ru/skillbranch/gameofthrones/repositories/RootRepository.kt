@@ -1,6 +1,9 @@
 package ru.skillbranch.gameofthrones.repositories
 
 import androidx.annotation.VisibleForTesting
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import ru.skillbranch.gameofthrones.data.local.entities.CharterFull
 import ru.skillbranch.gameofthrones.data.local.entities.CharterItem
 import ru.skillbranch.gameofthrones.data.remote.res.CharterRes
@@ -14,7 +17,9 @@ object RootRepository {
      */
     @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
     fun getAllHouses(result : (houses : List<HouseRes>) -> Unit) {
-        //TODO implement me
+        CoroutineScope(Dispatchers.IO).launch {
+
+        }
     }
 
     /**
