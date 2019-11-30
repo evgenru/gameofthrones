@@ -7,8 +7,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.koin.core.context.GlobalContext
 import retrofit2.HttpException
-import ru.skillbranch.gameofthrones.data.local.entities.CharterFull
-import ru.skillbranch.gameofthrones.data.local.entities.CharterItem
+import ru.skillbranch.gameofthrones.data.local.entities.CharacterFull
+import ru.skillbranch.gameofthrones.data.local.entities.CharacterItem
 import ru.skillbranch.gameofthrones.data.remote.res.CharacterRes
 import ru.skillbranch.gameofthrones.data.remote.res.HouseRes
 import ru.skillbranch.gameofthrones.repositories.network.AnApiOfIceAndFire
@@ -63,7 +63,7 @@ object RootRepository {
      * @param result - колбек содержащий в себе список данных о доме и персонажей в нем (Дом - Список Персонажей в нем)
      */
     @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
-    fun getNeedHouseWithCharters(
+    fun getNeedHouseWithCharacters(
         vararg houseNames: String,
         result: (houses: List<Pair<HouseRes, List<CharacterRes>>>) -> Unit
     ) {
@@ -83,12 +83,12 @@ object RootRepository {
 
     /**
      * Запись данных о пересонажах в DB
-     * @param characters - Список персонажей (модель CharterRes - модель ответа из сети)
+     * @param characters - Список персонажей (модель CharacterRes - модель ответа из сети)
      * необходимо произвести трансформацию данных
      * @param complete - колбек о завершении вставки записей db
      */
     @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
-    fun insertCharters(characters: List<CharacterRes>, complete: () -> Unit) {
+    fun insertCharacters(characters: List<CharacterRes>, complete: () -> Unit) {
         //TODO implement me
     }
 
@@ -103,23 +103,23 @@ object RootRepository {
 
     /**
      * Поиск всех персонажей по имени дома, должен вернуть список краткой информации о персонажах
-     * дома - смотри модель CharterItem
+     * дома - смотри модель CharacterItem
      * @param name - краткое имя дома (его первычный ключ)
      * @param result - колбек содержащий в себе список краткой информации о персонажах дома
      */
     @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
-    fun findChartersByHouseName(name: String, result: (charters: List<CharterItem>) -> Unit) {
+    fun findCharactersByHouseName(name: String, result: (Characters: List<CharacterItem>) -> Unit) {
         //TODO implement me
     }
 
     /**
      * Поиск персонажа по его идентификатору, должен вернуть полную информацию о персонаже
-     * и его родственных отношения - смотри модель CharterFull
+     * и его родственных отношения - смотри модель CharacterFull
      * @param id - идентификатор персонажа
      * @param result - колбек содержащий в себе полную информацию о персонаже
      */
     @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
-    fun findCharterFullById(id: String, result: (charter: CharterFull) -> Unit) {
+    fun findCharacterFullById(id: String, result: (Character: CharacterFull) -> Unit) {
         //TODO implement me
     }
 
