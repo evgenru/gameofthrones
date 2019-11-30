@@ -1,24 +1,49 @@
 package ru.skillbranch.gameofthrones.repositories
 
+import android.util.Log
 import androidx.annotation.VisibleForTesting
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import org.koin.core.context.GlobalContext
+import retrofit2.HttpException
 import ru.skillbranch.gameofthrones.data.local.entities.CharterFull
 import ru.skillbranch.gameofthrones.data.local.entities.CharterItem
-import ru.skillbranch.gameofthrones.data.remote.res.CharterRes
+import ru.skillbranch.gameofthrones.data.remote.res.CharacterRes
 import ru.skillbranch.gameofthrones.data.remote.res.HouseRes
+import ru.skillbranch.gameofthrones.repositories.network.AnApiOfIceAndFire
 
 object RootRepository {
+
+    private val anApiOfIceAndFire: AnApiOfIceAndFire by GlobalContext.get().koin.inject()
 
     /**
      * Получение данных о всех домах
      * @param result - колбек содержащий в себе список данных о домах
      */
     @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
-    fun getAllHouses(result : (houses : List<HouseRes>) -> Unit) {
+    fun getAllHouses(result: (houses: List<HouseRes>) -> Unit) {
         CoroutineScope(Dispatchers.IO).launch {
-
+            result(
+                try {
+                    val response = anApiOfIceAndFire.getHouses()
+                    if (response.isSuccessful) {
+                        response.body()!!
+                    } else {
+                        Log.e(
+                            "RootRepository",
+                            "getAllHouses: response.code() = ${response.code()}"
+                        )
+                        emptyList()
+                    }
+                } catch (e: HttpException) {
+                    Log.d("RootRepository", "getAllHouses: Exception ${e.message}")
+                    emptyList<HouseRes>()
+                } catch (e: Throwable) {
+                    Log.w("RootRepository", "getAllHouses: Ooops: Something else went wrong")
+                    emptyList<HouseRes>()
+                }
+            )
         }
     }
 
@@ -28,7 +53,7 @@ object RootRepository {
      * @param result - колбек содержащий в себе список данных о домах
      */
     @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
-    fun getNeedHouses(vararg houseNames: String, result : (houses : List<HouseRes>) -> Unit) {
+    fun getNeedHouses(vararg houseNames: String, result: (houses: List<HouseRes>) -> Unit) {
         //TODO implement me
     }
 
@@ -38,7 +63,10 @@ object RootRepository {
      * @param result - колбек содержащий в себе список данных о доме и персонажей в нем (Дом - Список Персонажей в нем)
      */
     @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
-    fun getNeedHouseWithCharters(vararg houseNames: String, result : (houses : List<Pair<HouseRes, List<CharterRes>>>) -> Unit) {
+    fun getNeedHouseWithCharters(
+        vararg houseNames: String,
+        result: (houses: List<Pair<HouseRes, List<CharacterRes>>>) -> Unit
+    ) {
         //TODO implement me
     }
 
@@ -49,18 +77,18 @@ object RootRepository {
      * @param complete - колбек о завершении вставки записей db
      */
     @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
-    fun insertHouses(houses : List<HouseRes>, complete: () -> Unit) {
+    fun insertHouses(houses: List<HouseRes>, complete: () -> Unit) {
         //TODO implement me
     }
 
     /**
      * Запись данных о пересонажах в DB
-     * @param charters - Список персонажей (модель CharterRes - модель ответа из сети)
+     * @param characters - Список персонажей (модель CharterRes - модель ответа из сети)
      * необходимо произвести трансформацию данных
      * @param complete - колбек о завершении вставки записей db
      */
     @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
-    fun insertCharters(charters : List<CharterRes>, complete: () -> Unit) {
+    fun insertCharters(characters: List<CharacterRes>, complete: () -> Unit) {
         //TODO implement me
     }
 
@@ -80,7 +108,7 @@ object RootRepository {
      * @param result - колбек содержащий в себе список краткой информации о персонажах дома
      */
     @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
-    fun findChartersByHouseName(name : String, result: (charters : List<CharterItem>) -> Unit) {
+    fun findChartersByHouseName(name: String, result: (charters: List<CharterItem>) -> Unit) {
         //TODO implement me
     }
 
@@ -91,7 +119,7 @@ object RootRepository {
      * @param result - колбек содержащий в себе полную информацию о персонаже
      */
     @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
-    fun findCharterFullById(id : String, result: (charter : CharterFull) -> Unit) {
+    fun findCharterFullById(id: String, result: (charter: CharterFull) -> Unit) {
         //TODO implement me
     }
 
@@ -99,7 +127,7 @@ object RootRepository {
      * Метод возвращет true если в базе нет ни одной записи, иначе false
      * @param result - колбек о завершении очистки db
      */
-    fun isNeedUpdate(result: (isNeed : Boolean) -> Unit){
+    fun isNeedUpdate(result: (isNeed: Boolean) -> Unit) {
         //TODO implement me
     }
 

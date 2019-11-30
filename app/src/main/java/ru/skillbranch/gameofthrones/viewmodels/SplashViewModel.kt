@@ -15,12 +15,14 @@ class SplashViewModel : ViewModel(), KoinComponent {
     val data: LiveData<Data> = _data
 
     init {
-        housesInteractor.loading()
+        housesInteractor.loading{
+            _data.postValue(Progress(it))
+        }
     }
 }
 
 sealed class Data
 
-data class Progress(val i: Int) : Data()
+data class Progress(val progress: Int) : Data()
 data class Error(val message: String) : Data()
 class Done : Data()

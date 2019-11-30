@@ -1,6 +1,6 @@
 package ru.skillbranch.gameofthrones.data.remote.res
 
-data class CharterRes(
+data class CharacterRes(
     val url: String,
     val name: String,
     val gender: String,
