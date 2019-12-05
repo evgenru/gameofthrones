@@ -17,6 +17,7 @@ import ru.skillbranch.gameofthrones.repositories.network.AnApiOfIceAndFire
 object RootRepository {
 
     private val anApiOfIceAndFire: AnApiOfIceAndFire by GlobalContext.get().koin.inject()
+    private val database: Database by GlobalContext.get().koin.inject()
 
     fun loading(complete: () -> Unit, error: (message: String) -> Unit) {
         isNeedUpdate { isNeedUpdate ->
@@ -154,8 +155,10 @@ object RootRepository {
      */
     @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
     fun insertHouses(houses: List<HouseRes>, complete: () -> Unit) {
-        complete()
-        //TODO implement me
+        CoroutineScope(Dispatchers.IO).launch {
+            database.insertHouses(houses)
+            complete()
+        }
     }
 
     /**
@@ -166,8 +169,10 @@ object RootRepository {
      */
     @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
     fun insertCharacters(characters: List<CharacterRes>, complete: () -> Unit) {
-        complete()
-        //TODO implement me
+        CoroutineScope(Dispatchers.IO).launch {
+            database.insertCharacters(characters)
+            complete()
+        }
     }
 
     /**
@@ -176,7 +181,10 @@ object RootRepository {
      */
     @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
     fun dropDb(complete: () -> Unit) {
-        //TODO implement me
+        CoroutineScope(Dispatchers.IO).launch {
+            database.dropDb()
+            complete()
+        }
     }
 
     /**
@@ -187,7 +195,10 @@ object RootRepository {
      */
     @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
     fun findCharactersByHouseName(name: String, result: (Characters: List<CharacterItem>) -> Unit) {
-        //TODO implement me
+        CoroutineScope(Dispatchers.IO).launch {
+            val characters = database.findCharactersByHouseName(name)
+            result(characters)
+        }
     }
 
     /**
@@ -198,7 +209,10 @@ object RootRepository {
      */
     @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
     fun findCharacterFullById(id: String, result: (Character: CharacterFull) -> Unit) {
-        //TODO implement me
+        CoroutineScope(Dispatchers.IO).launch {
+            val characters = database.findCharacterFullById(id)
+            result(characters)
+        }
     }
 
     /**
@@ -206,8 +220,9 @@ object RootRepository {
      * @param result - колбек о завершении очистки db
      */
     fun isNeedUpdate(result: (isNeed: Boolean) -> Unit) {
-        result(true)
-        //TODO implement me
+        CoroutineScope(Dispatchers.IO).launch {
+            result(database.getCountHouses() > 0)
+        }
     }
 
 }
