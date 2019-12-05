@@ -4,9 +4,10 @@ import android.util.Log
 import androidx.annotation.VisibleForTesting
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.koin.core.context.GlobalContext
-import retrofit2.HttpException
+import ru.skillbranch.gameofthrones.AppConfig
 import ru.skillbranch.gameofthrones.data.local.entities.CharacterFull
 import ru.skillbranch.gameofthrones.data.local.entities.CharacterItem
 import ru.skillbranch.gameofthrones.data.remote.res.CharacterRes
@@ -17,6 +18,37 @@ object RootRepository {
 
     private val anApiOfIceAndFire: AnApiOfIceAndFire by GlobalContext.get().koin.inject()
 
+    fun loading(complete: () -> Unit, error: (message: String) -> Unit) {
+        isNeedUpdate { isNeedUpdate ->
+            if (isNeedUpdate) {
+                getNeedHouseWithCharacters(*AppConfig.NEED_HOUSES) { houses ->
+                    Log.d("HousesInteractor", "loading: houses: ${houses.size}")
+                    Log.d(
+                        "HousesInteractor",
+                        "loading: characters: ${houses.map { it.second }.flatten().size}"
+                    )
+
+                    if (houses.isEmpty()) {
+                        error("houses is empty")
+                    } else {
+                        insertHouses(houses.map { it.first }) {
+                            insertCharacters(houses.map { it.second }.flatten()) {
+                                complete()
+                            }
+                        }
+                    }
+                }
+            } else {
+                CoroutineScope(Dispatchers.IO).launch {
+                    delay(5_000)
+                    complete()
+                }
+            }
+        }
+
+    }
+
+
     /**
      * Получение данных о всех домах
      * @param result - колбек содержащий в себе список данных о домах
@@ -24,27 +56,33 @@ object RootRepository {
     @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
     fun getAllHouses(result: (houses: List<HouseRes>) -> Unit) {
         CoroutineScope(Dispatchers.IO).launch {
-            result(
-                try {
-                    val response = anApiOfIceAndFire.getHouses()
-                    if (response.isSuccessful) {
-                        response.body()!!
-                    } else {
-                        Log.e(
-                            "RootRepository",
-                            "getAllHouses: response.code() = ${response.code()}"
-                        )
-                        emptyList()
-                    }
-                } catch (e: HttpException) {
-                    Log.d("RootRepository", "getAllHouses: Exception ${e.message}")
-                    emptyList<HouseRes>()
-                } catch (e: Throwable) {
-                    Log.w("RootRepository", "getAllHouses: Ooops: Something else went wrong")
-                    emptyList<HouseRes>()
-                }
-            )
+            try {
+                result(loadAllHouses())
+            } catch (t: Throwable) {
+                result(emptyList())
+            }
         }
+    }
+
+    private suspend fun loadAllHouses(): List<HouseRes> {
+        val houses = mutableListOf<HouseRes>()
+        var page = 1
+        while (true) {
+            val response = anApiOfIceAndFire.getHouses(page++)
+            val newHouses = if (response.isSuccessful) {
+                response.body() ?: emptyList()
+            } else {
+                Log.d(
+                    "RootRepository",
+                    "getAllHouses: response.code() = ${response.code()}"
+                )
+                emptyList()
+            }
+            if (newHouses.isEmpty())
+                break
+            houses.addAll(newHouses)
+        }
+        return houses
     }
 
     /**
@@ -54,7 +92,11 @@ object RootRepository {
      */
     @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
     fun getNeedHouses(vararg houseNames: String, result: (houses: List<HouseRes>) -> Unit) {
-        //TODO implement me
+        getAllHouses {
+            result(
+                it.filter { house -> house.name in houseNames }
+            )
+        }
     }
 
     /**
@@ -67,7 +109,41 @@ object RootRepository {
         vararg houseNames: String,
         result: (houses: List<Pair<HouseRes, List<CharacterRes>>>) -> Unit
     ) {
-        //TODO implement me
+        CoroutineScope(Dispatchers.IO).launch {
+            getAllHouses { houses ->
+                val needHouses = houses.filter { house -> house.name in houseNames }
+                CoroutineScope(Dispatchers.IO).launch {
+                    val resultHouses = needHouses.map { it to mutableListOf<CharacterRes>() }
+                    launch {
+                        resultHouses.forEach {
+                            it.first.swornMembers.forEach { characterUrl ->
+                                val characterId =
+                                    characterUrl.drop(characterUrl.lastIndexOf('/') + 1)
+                                launch {
+                                    it.second.add(loadCharacter(characterId))
+                                    Log.d("RootRepository", "loadCharacter: $characterId")
+                                }
+                            }
+                        }
+                        Log.d("RootRepository", "loadCharacter: started")
+                    }.join()
+                    result(resultHouses)
+                }
+            }
+        }
+    }
+
+    private suspend fun loadCharacter(characterId: String): CharacterRes {
+        val response = anApiOfIceAndFire.getCharacter(characterId)
+        return if (response.isSuccessful) {
+            response.body()!!
+        } else {
+            Log.d(
+                "RootRepository",
+                "loadCharacter: response.code() = ${response.code()}"
+            )
+            error("Character not found")
+        }
     }
 
     /**
@@ -78,6 +154,7 @@ object RootRepository {
      */
     @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
     fun insertHouses(houses: List<HouseRes>, complete: () -> Unit) {
+        complete()
         //TODO implement me
     }
 
@@ -89,6 +166,7 @@ object RootRepository {
      */
     @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
     fun insertCharacters(characters: List<CharacterRes>, complete: () -> Unit) {
+        complete()
         //TODO implement me
     }
 
@@ -128,6 +206,7 @@ object RootRepository {
      * @param result - колбек о завершении очистки db
      */
     fun isNeedUpdate(result: (isNeed: Boolean) -> Unit) {
+        result(true)
         //TODO implement me
     }
 

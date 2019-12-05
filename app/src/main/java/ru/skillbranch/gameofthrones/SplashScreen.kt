@@ -1,9 +1,12 @@
 package ru.skillbranch.gameofthrones
 
-import androidx.appcompat.app.AppCompatActivity
+import android.content.Intent
 import android.os.Bundle
+import android.view.View
+import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
+import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.activity_splash_screen.*
 import ru.skillbranch.gameofthrones.viewmodels.Done
 import ru.skillbranch.gameofthrones.viewmodels.Error
@@ -19,17 +22,35 @@ class SplashScreen : AppCompatActivity() {
         setContentView(R.layout.activity_splash_screen)
 
         viewModel = ViewModelProviders.of(this).get(SplashViewModel::class.java)
-        
+
     }
 
     override fun onResume() {
         super.onResume()
 
         viewModel.data.observe(this, Observer {
-            when (it){
-                is Progress -> progressBar.progress = it.progress
-                is Error -> TODO()
-                is Done -> TODO()
+            when (it) {
+                is Progress -> {
+                    progressBar.visibility = View.VISIBLE
+                }
+                is Error -> {
+                    progressBar.visibility = View.GONE
+                    Snackbar.make(
+                        progressBar,
+                        R.string.loading_error,
+                        Snackbar.LENGTH_INDEFINITE
+                    ).show()
+                }
+                is Done -> {
+                    progressBar.visibility = View.VISIBLE
+                    progressBar.progress = 100
+                    startActivity(
+                        Intent(this, MainActivity::class.java).apply {
+                            addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY)
+                        }
+                    )
+                    finish()
+                }
             }
         })
     }

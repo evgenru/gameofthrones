@@ -11,18 +11,20 @@ class SplashViewModel : ViewModel(), KoinComponent {
 
     private val housesInteractor: HousesInteractor by inject()
 
-    private val _data: MutableLiveData<Data> = MutableLiveData(Progress(0))
+    private val _data: MutableLiveData<Data> = MutableLiveData(Progress)
     val data: LiveData<Data> = _data
 
     init {
-        housesInteractor.loading{
-            _data.postValue(Progress(it))
-        }
+        housesInteractor.loading({
+            _data.postValue(Done)
+        }, {
+            _data.postValue(Error("error"))
+        })
     }
 }
 
 sealed class Data
 
-data class Progress(val progress: Int) : Data()
+object Progress : Data()
 data class Error(val message: String) : Data()
-class Done : Data()
+object Done : Data()
