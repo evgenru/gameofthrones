@@ -8,12 +8,24 @@ import ru.skillbranch.gameofthrones.data.local.entities.RelativeCharacter
 data class CharacterEntity(
     @PrimaryKey val id: String,
     val name: String,
+    val born: String,
+    val died: String,
+    val titles: List<String>,
+    val aliases: List<String>,
+    val father: String, //rel
+    val mother: String //rel
+)
+
+@Entity
+data class CharacterHouseEntity(
+    @PrimaryKey val id: String,
+    val name: String,
     val words: String,
     val born: String,
     val died: String,
     val titles: List<String>,
     val aliases: List<String>,
-    val house: String, //rel
-    val father: RelativeCharacter?,
-    val mother: RelativeCharacter?
+    val father: String, //rel
+    val mother: String, //rel
+    val house: String
 )

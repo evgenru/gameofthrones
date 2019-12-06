@@ -31,7 +31,7 @@ data class CharacterFull(
     val died: String,
     val titles: List<String>,
     val aliases: List<String>,
-    val house:String, //rel
+    val house: String, //rel
     val father: RelativeCharacter?,
     val mother: RelativeCharacter?
 )
@@ -39,5 +39,5 @@ data class CharacterFull(
 data class RelativeCharacter(
     val id: String,
     val name: String,
-    val house:String //rel
+    val house: String //rel
 )

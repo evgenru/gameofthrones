@@ -10,7 +10,7 @@ data class HouseEntity(
     val region: String,
     val coatOfArms: String,
     val words: String,
-    val titles: List<String>,
+    val titles: List<String>, // TODO converter
     val seats: List<String>,
     val currentLord: String, //rel
     val heir: String, //rel
@@ -20,3 +20,4 @@ data class HouseEntity(
     val diedOut: String,
     val ancestralWeapons: List<String>
 )
+

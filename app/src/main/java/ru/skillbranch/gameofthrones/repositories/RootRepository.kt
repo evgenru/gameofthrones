@@ -2,17 +2,25 @@ package ru.skillbranch.gameofthrones.repositories
 
 import android.util.Log
 import androidx.annotation.VisibleForTesting
+import androidx.room.Room
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import org.koin.core.KoinComponent
 import org.koin.core.context.GlobalContext
+import org.koin.core.inject
+import retrofit2.Retrofit
+import retrofit2.converter.moshi.MoshiConverterFactory
 import ru.skillbranch.gameofthrones.AppConfig
+import ru.skillbranch.gameofthrones.MainApplication
 import ru.skillbranch.gameofthrones.data.local.entities.CharacterFull
 import ru.skillbranch.gameofthrones.data.local.entities.CharacterItem
 import ru.skillbranch.gameofthrones.data.remote.res.CharacterRes
 import ru.skillbranch.gameofthrones.data.remote.res.HouseRes
 import ru.skillbranch.gameofthrones.repositories.network.AnApiOfIceAndFire
+import ru.skillbranch.gameofthrones.repositories.room.DatabaseRoom
+import ru.skillbranch.gameofthrones.repositories.room.RootDatabase
 
 object RootRepository {
 
@@ -51,7 +59,7 @@ object RootRepository {
 
 
     /**
-     * Получение данных о всех домах
+     * Получение данных о всех домах из сети
      * @param result - колбек содержащий в себе список данных о домах
      */
     @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
@@ -87,7 +95,7 @@ object RootRepository {
     }
 
     /**
-     * Получение данных о требуемых домах по их полным именам (например фильтрация всех домов)
+     * Получение данных о требуемых домах по их полным именам из сети
      * @param houseNames - массив полных названий домов (смотри AppConfig)
      * @param result - колбек содержащий в себе список данных о домах
      */
@@ -101,7 +109,7 @@ object RootRepository {
     }
 
     /**
-     * Получение данных о требуемых домах по их полным именам и персонажах в каждом из домов
+     * Получение данных о требуемых домах по их полным именам и персонажах в каждом из домов из сети
      * @param houseNames - массив полных названий домов (смотри AppConfig)
      * @param result - колбек содержащий в себе список данных о доме и персонажей в нем (Дом - Список Персонажей в нем)
      */
@@ -163,14 +171,14 @@ object RootRepository {
 
     /**
      * Запись данных о пересонажах в DB
-     * @param characters - Список персонажей (модель CharacterRes - модель ответа из сети)
+     * @param Characters - Список персонажей (модель CharacterRes - модель ответа из сети)
      * необходимо произвести трансформацию данных
      * @param complete - колбек о завершении вставки записей db
      */
     @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
-    fun insertCharacters(characters: List<CharacterRes>, complete: () -> Unit) {
+    fun insertCharacters(Characters: List<CharacterRes>, complete: () -> Unit) {
         CoroutineScope(Dispatchers.IO).launch {
-            database.insertCharacters(characters)
+            database.insertCharacters(Characters)
             complete()
         }
     }
@@ -194,7 +202,7 @@ object RootRepository {
      * @param result - колбек содержащий в себе список краткой информации о персонажах дома
      */
     @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
-    fun findCharactersByHouseName(name: String, result: (Characters: List<CharacterItem>) -> Unit) {
+    fun findCharactersByHouseName(name: String, result: (characters: List<CharacterItem>) -> Unit) {
         CoroutineScope(Dispatchers.IO).launch {
             val characters = database.findCharactersByHouseName(name)
             result(characters)
@@ -208,7 +216,7 @@ object RootRepository {
      * @param result - колбек содержащий в себе полную информацию о персонаже
      */
     @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
-    fun findCharacterFullById(id: String, result: (Character: CharacterFull) -> Unit) {
+    fun findCharacterFullById(id: String, result: (character: CharacterFull) -> Unit) {
         CoroutineScope(Dispatchers.IO).launch {
             val characters = database.findCharacterFullById(id)
             result(characters)
@@ -221,7 +229,7 @@ object RootRepository {
      */
     fun isNeedUpdate(result: (isNeed: Boolean) -> Unit) {
         CoroutineScope(Dispatchers.IO).launch {
-            result(database.getCountHouses() > 0)
+            result(database.getCountHouses() == 0)
         }
     }
 

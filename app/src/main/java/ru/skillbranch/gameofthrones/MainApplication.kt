@@ -7,8 +7,16 @@ import org.koin.core.context.startKoin
 import ru.skillbranch.gameofthrones.di.dataModule
 
 class MainApplication: Application() {
+
+    companion object {
+        lateinit var instance: MainApplication
+    }
+
+
     override fun onCreate() {
         super.onCreate()
+
+        instance = this
 
         // DI
         startKoin {
