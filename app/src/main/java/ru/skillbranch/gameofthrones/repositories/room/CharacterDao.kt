@@ -15,14 +15,14 @@ interface CharacterDao :
           INNER JOIN RelativeEntity AS r ON c.id == r.id
           INNER JOIN HouseEntity AS h ON h.id == r.house
         WHERE c.id = :id""")
-    fun getById(id: String): CharacterHouseEntity?
+    fun getById(id: String): CharacterWithHouse?
 
     @Query("""SELECT c.*, h.name as house, h.words
         FROM CharacterEntity as c
           INNER JOIN RelativeEntity AS r ON c.id == r.id
           INNER JOIN HouseEntity AS h ON h.id == r.house
         WHERE h.name like :houseName""")
-    fun getByHouseName(houseName: String): List<CharacterHouseEntity>
+    fun getByHouseName(houseName: String): List<CharacterWithHouse>
 
 
 }

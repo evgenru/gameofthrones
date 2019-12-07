@@ -16,9 +16,8 @@ data class CharacterEntity(
     val mother: String //rel
 )
 
-@Entity
-data class CharacterHouseEntity(
-    @PrimaryKey val id: String,
+data class CharacterWithHouse(
+    val id: String,
     val name: String,
     val words: String,
     val born: String,

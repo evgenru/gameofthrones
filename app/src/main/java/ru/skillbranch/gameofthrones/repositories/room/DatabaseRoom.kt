@@ -46,12 +46,12 @@ class DatabaseRoom(
 
 }
 
-private fun CharacterHouseEntity.toCharacterItem() = CharacterItem(
+private fun CharacterWithHouse.toCharacterItem() = CharacterItem(
     id, getShortHouseName(house), name, titles, aliases
 )
 
 
-private fun CharacterHouseEntity.toCharacterFull(characterDao: CharacterDao): CharacterFull {
+private fun CharacterWithHouse.toCharacterFull(characterDao: CharacterDao): CharacterFull {
     val father = characterDao.getById(this.father)
     val mother = characterDao.getById(this.mother)
     return CharacterFull(
