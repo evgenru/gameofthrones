@@ -209,7 +209,7 @@ object RootRepository {
     @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
     fun findCharactersByHouseName(name: String, result: (characters: List<CharacterItem>) -> Unit) {
         CoroutineScope(Dispatchers.IO).launch {
-            val characters = database.findCharactersByHouseName(name)
+            val characters = database.findCharactersByHouseName(name).sortedBy { it.name }
             result(characters)
         }
     }
