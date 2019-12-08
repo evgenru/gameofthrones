@@ -45,7 +45,7 @@ class SplashScreen : AppCompatActivity() {
                     progressBar.visibility = View.VISIBLE
                     progressBar.progress = 100
                     startActivity(
-                        Intent(this, MainActivity::class.java).apply {
+                        Intent(this, CharactersListScreen::class.java).apply {
                             addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY)
                         }
                     )

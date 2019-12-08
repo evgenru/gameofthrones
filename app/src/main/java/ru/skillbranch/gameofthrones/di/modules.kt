@@ -14,7 +14,7 @@ import ru.skillbranch.gameofthrones.repositories.room.RootDatabase
 
 val dataModule = module {
 
-    single { Room.databaseBuilder(get(), RootDatabase::class.java, "1-master-db").build() }
+    single { Room.databaseBuilder(get(), RootDatabase::class.java, "3-master-db").build() }
 
     single {
         DatabaseRoom(

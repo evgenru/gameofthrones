@@ -2,25 +2,19 @@ package ru.skillbranch.gameofthrones.repositories
 
 import android.util.Log
 import androidx.annotation.VisibleForTesting
-import androidx.room.Room
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import org.koin.core.KoinComponent
 import org.koin.core.context.GlobalContext
-import org.koin.core.inject
-import retrofit2.Retrofit
-import retrofit2.converter.moshi.MoshiConverterFactory
 import ru.skillbranch.gameofthrones.AppConfig
-import ru.skillbranch.gameofthrones.MainApplication
 import ru.skillbranch.gameofthrones.data.local.entities.CharacterFull
 import ru.skillbranch.gameofthrones.data.local.entities.CharacterItem
+import ru.skillbranch.gameofthrones.data.local.entities.House
 import ru.skillbranch.gameofthrones.data.remote.res.CharacterRes
 import ru.skillbranch.gameofthrones.data.remote.res.HouseRes
 import ru.skillbranch.gameofthrones.repositories.network.AnApiOfIceAndFire
-import ru.skillbranch.gameofthrones.repositories.room.DatabaseRoom
-import ru.skillbranch.gameofthrones.repositories.room.RootDatabase
+import ru.skillbranch.gameofthrones.repositories.room.getShortHouseName
 
 object RootRepository {
 
@@ -41,7 +35,9 @@ object RootRepository {
                         error("houses is empty")
                     } else {
                         insertHouses(houses.map { it.first }) {
-                            insertCharacters(houses.map { it.second }.flatten()) {
+                            val characters =
+                                houses.map { it.second }.flatten().distinctBy { it.url }
+                            insertCharacters(characters) {
                                 complete()
                             }
                         }
@@ -55,6 +51,15 @@ object RootRepository {
             }
         }
 
+    }
+
+    suspend fun findAllHouses(): List<House> {
+        val houses = database.getHouses()
+        return AppConfig.NEED_HOUSES
+            .map { getShortHouseName(it) }
+            .mapNotNull { houseName ->
+                houses.firstOrNull { it.name == houseName }
+            }
     }
 
 
