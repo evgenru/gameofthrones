@@ -47,7 +47,7 @@ class ExampleInstrumentedTest {
     )
 
     private val stubHouseTargaryen = HouseRes(
-        url = "https://www.anapioficeandfire.com/api/houses/378",
+            url = "https://www.anapioficeandfire.com/api/houses/378",
         name = "House Targaryen of King's Landing",
         region = "The Crownlands",
         coatOfArms = "Sable, a dragon thrice-headed gules",
