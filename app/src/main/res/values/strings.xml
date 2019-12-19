@@ -1,7 +1,13 @@
 <resources>
-    <string name="app_name">gameofthrones</string>
+    <string name="app_name">Game Of Thrones</string>
+
     <string name="loading_error">Интернет недоступен - приложение не может быть запущенно. Подключитесь к интернету и перезапустите приложение</string>
+
     <string name="title_activity_characters_list_screen">CharactersListScreen</string>
+
     <string name="tab_text_1">Tab 1</string>
     <string name="tab_text_2">Tab 2</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>

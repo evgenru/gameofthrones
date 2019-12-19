@@ -4,7 +4,6 @@ import android.util.Log
 import androidx.annotation.VisibleForTesting
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.koin.core.context.GlobalContext
 import ru.skillbranch.gameofthrones.AppConfig
@@ -21,36 +20,21 @@ object RootRepository {
     private val anApiOfIceAndFire: AnApiOfIceAndFire by GlobalContext.get().koin.inject()
     private val database: Database by GlobalContext.get().koin.inject()
 
-    fun loading(complete: () -> Unit, error: (message: String) -> Unit) {
-        isNeedUpdate { isNeedUpdate ->
-            if (isNeedUpdate) {
-                getNeedHouseWithCharacters(*AppConfig.NEED_HOUSES) { houses ->
-                    Log.d("HousesInteractor", "loading: houses: ${houses.size}")
-                    Log.d(
-                        "HousesInteractor",
-                        "loading: characters: ${houses.map { it.second }.flatten().size}"
-                    )
-
-                    if (houses.isEmpty()) {
-                        error("houses is empty")
-                    } else {
-                        insertHouses(houses.map { it.first }) {
-                            val characters =
-                                houses.map { it.second }.flatten().distinctBy { it.url }
-                            insertCharacters(characters) {
-                                complete()
-                            }
-                        }
-                    }
-                }
-            } else {
-                CoroutineScope(Dispatchers.IO).launch {
-                    delay(5_000)
-                    complete()
-                }
-            }
+    suspend fun sync() {
+        val houses = getNeedHouseWithCharacters(*AppConfig.NEED_HOUSES)
+        Log.d("HousesInteractor", "loading: houses: ${houses.size}")
+        Log.d(
+            "HousesInteractor",
+            "loading: characters: ${houses.map { it.second }.flatten().size}"
+        )
+        if (houses.isEmpty()) {
+            error("houses is empty")
+        } else {
+            insertHouses(houses.map { it.first })
+            val characters =
+                houses.map { it.second }.flatten().distinctBy { it.url }
+            insertCharacters(characters)
         }
-
     }
 
     suspend fun findAllHouses(): List<House> {
@@ -68,14 +52,8 @@ object RootRepository {
      * @param result - колбек содержащий в себе список данных о домах
      */
     @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
-    fun getAllHouses(result: (houses: List<HouseRes>) -> Unit) {
-        CoroutineScope(Dispatchers.IO).launch {
-            try {
-                result(loadAllHouses())
-            } catch (t: Throwable) {
-                result(emptyList())
-            }
-        }
+    suspend fun getAllHouses(): List<HouseRes> {
+        return loadAllHouses()
     }
 
     private suspend fun loadAllHouses(): List<HouseRes> {
@@ -105,12 +83,8 @@ object RootRepository {
      * @param result - колбек содержащий в себе список данных о домах
      */
     @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
-    fun getNeedHouses(vararg houseNames: String, result: (houses: List<HouseRes>) -> Unit) {
-        getAllHouses {
-            result(
-                it.filter { house -> house.name in houseNames }
-            )
-        }
+    suspend fun getNeedHouses(vararg houseNames: String): List<HouseRes> {
+        return getAllHouses().filter { house -> house.name in houseNames }
     }
 
     /**
@@ -119,32 +93,27 @@ object RootRepository {
      * @param result - колбек содержащий в себе список данных о доме и персонажей в нем (Дом - Список Персонажей в нем)
      */
     @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
-    fun getNeedHouseWithCharacters(
-        vararg houseNames: String,
-        result: (houses: List<Pair<HouseRes, List<CharacterRes>>>) -> Unit
-    ) {
+    suspend fun getNeedHouseWithCharacters(
+        vararg houseNames: String
+    ): List<Pair<HouseRes, List<CharacterRes>>> {
+        val houses = getAllHouses()
+        val needHouses = houses.filter { house -> house.name in houseNames }
+
+        val resultHouses = needHouses.map { it to mutableListOf<CharacterRes>() }
         CoroutineScope(Dispatchers.IO).launch {
-            getAllHouses { houses ->
-                val needHouses = houses.filter { house -> house.name in houseNames }
-                CoroutineScope(Dispatchers.IO).launch {
-                    val resultHouses = needHouses.map { it to mutableListOf<CharacterRes>() }
+            resultHouses.forEach {
+                it.first.swornMembers.forEach { characterUrl ->
+                    val characterId =
+                        characterUrl.drop(characterUrl.lastIndexOf('/') + 1)
                     launch {
-                        resultHouses.forEach {
-                            it.first.swornMembers.forEach { characterUrl ->
-                                val characterId =
-                                    characterUrl.drop(characterUrl.lastIndexOf('/') + 1)
-                                launch {
-                                    it.second.add(loadCharacter(characterId))
-                                    Log.d("RootRepository", "loadCharacter: $characterId")
-                                }
-                            }
-                        }
-                        Log.d("RootRepository", "loadCharacter: started")
-                    }.join()
-                    result(resultHouses)
+                        it.second.add(loadCharacter(characterId))
+                        Log.d("RootRepository", "loadCharacter: $characterId")
+                    }
                 }
             }
-        }
+            Log.d("RootRepository", "loadCharacter: started")
+        }.join()
+        return resultHouses
     }
 
     private suspend fun loadCharacter(characterId: String): CharacterRes {
@@ -167,37 +136,26 @@ object RootRepository {
      * @param complete - колбек о завершении вставки записей db
      */
     @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
-    fun insertHouses(houses: List<HouseRes>, complete: () -> Unit) {
-        CoroutineScope(Dispatchers.IO).launch {
-            database.insertHouses(houses)
-            complete()
-        }
+    suspend fun insertHouses(houses: List<HouseRes>) {
+        database.insertHouses(houses)
     }
 
     /**
      * Запись данных о пересонажах в DB
      * @param Characters - Список персонажей (модель CharacterRes - модель ответа из сети)
      * необходимо произвести трансформацию данных
-     * @param complete - колбек о завершении вставки записей db
      */
     @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
-    fun insertCharacters(Characters: List<CharacterRes>, complete: () -> Unit) {
-        CoroutineScope(Dispatchers.IO).launch {
-            database.insertCharacters(Characters)
-            complete()
-        }
+    suspend fun insertCharacters(Characters: List<CharacterRes>) {
+        database.insertCharacters(Characters)
     }
 
     /**
      * При вызове данного метода необходимо выполнить удаление всех записей в db
-     * @param complete - колбек о завершении очистки db
      */
     @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
-    fun dropDb(complete: () -> Unit) {
-        CoroutineScope(Dispatchers.IO).launch {
-            database.dropDb()
-            complete()
-        }
+    suspend fun dropDb() {
+        database.dropDb()
     }
 
     /**
@@ -232,10 +190,6 @@ object RootRepository {
      * Метод возвращет true если в базе нет ни одной записи, иначе false
      * @param result - колбек о завершении очистки db
      */
-    fun isNeedUpdate(result: (isNeed: Boolean) -> Unit) {
-        CoroutineScope(Dispatchers.IO).launch {
-            result(database.getCountHouses() == 0)
-        }
-    }
+    suspend fun isNeedUpdate() = database.getCountHouses() == 0
 
 }

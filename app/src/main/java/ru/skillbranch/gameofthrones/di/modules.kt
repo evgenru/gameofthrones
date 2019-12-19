@@ -5,7 +5,6 @@ import org.koin.dsl.module
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
 import ru.skillbranch.gameofthrones.AppConfig
-import ru.skillbranch.gameofthrones.interactors.HousesInteractor
 import ru.skillbranch.gameofthrones.repositories.Database
 import ru.skillbranch.gameofthrones.repositories.RootRepository
 import ru.skillbranch.gameofthrones.repositories.network.AnApiOfIceAndFire
@@ -31,7 +30,6 @@ val dataModule = module {
             .create(AnApiOfIceAndFire::class.java)
     }
 
-
-    single { HousesInteractor(RootRepository) }
+    single { RootRepository }
 
 }
