@@ -164,12 +164,8 @@ object RootRepository {
      * @param name - краткое имя дома (его первычный ключ)
      * @param result - колбек содержащий в себе список краткой информации о персонажах дома
      */
-    @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
-    fun findCharactersByHouseName(name: String, result: (characters: List<CharacterItem>) -> Unit) {
-        CoroutineScope(Dispatchers.IO).launch {
-            val characters = database.findCharactersByHouseName(name).sortedBy { it.name }
-            result(characters)
-        }
+    suspend fun findCharactersByHouseName(name: String): List<CharacterItem> {
+        return database.findCharactersByHouseName(name).sortedBy { it.name }
     }
 
     /**

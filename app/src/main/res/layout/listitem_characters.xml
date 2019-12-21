@@ -20,13 +20,14 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
-        android:fontFamily="sans-serif-medium"
+        android:ellipsize="end"
+        android:maxLines="1"
         android:textColor="@android:color/black"
         android:textSize="16sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/house_icon"
         app:layout_constraintTop_toTopOf="@+id/house_icon"
-        tools:text="TextView" />
+        tools:text="John Snow" />
 
     <TextView
         android:id="@+id/character_description"
@@ -34,7 +35,6 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="4dp"
         android:ellipsize="end"
-        android:fontFamily="sans-serif-medium"
         android:maxLines="2"
         android:textColor="@color/color_gray"
         android:textSize="12sp"
