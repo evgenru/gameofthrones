@@ -2,20 +2,24 @@ package ru.skillbranch.gameofthrones.repositories
 
 import android.util.Log
 import androidx.annotation.VisibleForTesting
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import org.koin.core.context.GlobalContext
 import ru.skillbranch.gameofthrones.AppConfig
 import ru.skillbranch.gameofthrones.data.local.entities.CharacterFull
 import ru.skillbranch.gameofthrones.data.local.entities.CharacterItem
 import ru.skillbranch.gameofthrones.data.local.entities.House
+import ru.skillbranch.gameofthrones.data.remote.AnApiOfIceAndFire
 import ru.skillbranch.gameofthrones.data.remote.res.CharacterRes
 import ru.skillbranch.gameofthrones.data.remote.res.HouseRes
-import ru.skillbranch.gameofthrones.repositories.network.AnApiOfIceAndFire
 import ru.skillbranch.gameofthrones.repositories.room.getShortHouseName
 
 object RootRepository {
+
+    private val errorHandler = CoroutineExceptionHandler { coroutineContext, throwable ->
+        println("Caught $throwable")
+        throwable.printStackTrace()
+    }
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO + errorHandler)
 
     private val anApiOfIceAndFire: AnApiOfIceAndFire by GlobalContext.get().koin.inject()
     private val database: Database by GlobalContext.get().koin.inject()
@@ -100,7 +104,7 @@ object RootRepository {
         val needHouses = houses.filter { house -> house.name in houseNames }
 
         val resultHouses = needHouses.map { it to mutableListOf<CharacterRes>() }
-        CoroutineScope(Dispatchers.IO).launch {
+        scope.launch {
             resultHouses.forEach {
                 it.first.swornMembers.forEach { characterUrl ->
                     val characterId =
@@ -111,7 +115,6 @@ object RootRepository {
                     }
                 }
             }
-            Log.d("RootRepository", "loadCharacter: started")
         }.join()
         return resultHouses
     }
@@ -174,13 +177,7 @@ object RootRepository {
      * @param id - идентификатор персонажа
      * @param result - колбек содержащий в себе полную информацию о персонаже
      */
-    @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
-    fun findCharacterFullById(id: String, result: (character: CharacterFull) -> Unit) {
-        CoroutineScope(Dispatchers.IO).launch {
-            val characters = database.findCharacterFullById(id)
-            result(characters)
-        }
-    }
+    suspend fun findCharacterFullById(id: String): CharacterFull = database.findCharacterFullById(id)
 
     /**
      * Метод возвращет true если в базе нет ни одной записи, иначе false

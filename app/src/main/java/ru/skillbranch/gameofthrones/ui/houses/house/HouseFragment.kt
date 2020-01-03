@@ -10,11 +10,13 @@ import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import kotlinx.android.synthetic.main.fragment_house_list.*
 import ru.skillbranch.gameofthrones.R
 import ru.skillbranch.gameofthrones.data.local.entities.HouseType
 import ru.skillbranch.gameofthrones.ui.custom.ItemDivider
+import ru.skillbranch.gameofthrones.ui.houses.HousesFragmentDirections
 
 class HouseFragment : Fragment() {
 
@@ -29,7 +31,9 @@ class HouseFragment : Fragment() {
         val house = HouseType.valueOf(arguments?.getString(HOUSE_NAME) ?: HouseType.STARK.name)
         val vmFactory = HouseViewModelFactory(house)
         characterAdapter = CharacterAdapter {
-            //            val action TODO
+            val action =
+                HousesFragmentDirections.actionNavHousesToCharacterFragment(it.id, house, it.name)
+            findNavController().navigate(action)
         }
 
         viewModel = ViewModelProviders.of(this, vmFactory).get(HouseViewModel::class.java)
@@ -65,7 +69,7 @@ class HouseFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         with(house_characters_list) {
-            layoutManager = LinearLayoutManager(context)
+            layoutManager = LinearLayoutManager(view.context)
             addItemDecoration(ItemDivider())
             adapter = characterAdapter
         }

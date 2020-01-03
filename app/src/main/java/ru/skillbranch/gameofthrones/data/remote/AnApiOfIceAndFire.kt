@@ -1,4 +1,4 @@
-package ru.skillbranch.gameofthrones.repositories.network
+package ru.skillbranch.gameofthrones.data.remote
 
 import retrofit2.Response
 import retrofit2.http.GET
