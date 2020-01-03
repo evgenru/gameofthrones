@@ -50,6 +50,10 @@ class RootActivity : AppCompatActivity() {
         })
     }
 
+    override fun onSupportNavigateUp(): Boolean {
+        return navController.navigateUp() || super.onSupportNavigateUp()
+    }
+
     private fun initViewModel() {
         viewModel = ViewModelProviders.of(this).get(RootViewModel::class.java)
     }

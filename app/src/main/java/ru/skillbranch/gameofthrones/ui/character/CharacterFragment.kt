@@ -26,7 +26,6 @@ class CharacterFragment : Fragment() {
         super.onCreate(savedInstanceState)
         viewModel = ViewModelProviders.of(this, CharacterViewModelFactory(args.id))
             .get(CharacterViewModel::class.java)
-        setHasOptionsMenu(true)
     }
 
     override fun onCreateView(
@@ -109,15 +108,6 @@ class CharacterFragment : Fragment() {
 
         })
 
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        return if (item.itemId == android.R.id.home) {
-            findNavController().navigateUp()
-            true
-        } else {
-            super.onOptionsItemSelected(item)
-        }
     }
 
 }
