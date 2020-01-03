@@ -31,7 +31,7 @@ class RootViewModel(val app: Application) : AndroidViewModel(app), KoinComponent
                 Log.d("RootViewModel", "syncDataIfNeed: Success")
                 result.postValue(LoadResult.Success)
             } else {
-//                delay(5000)
+                delay(5000)
                 result.postValue(LoadResult.Success)
             }
         }
