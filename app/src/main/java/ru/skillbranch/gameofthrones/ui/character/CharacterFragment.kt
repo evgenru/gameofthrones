@@ -3,6 +3,7 @@ package ru.skillbranch.gameofthrones.ui.character
 
 import android.os.Bundle
 import android.view.LayoutInflater
+import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
@@ -21,6 +22,7 @@ class CharacterFragment : Fragment() {
         super.onCreate(savedInstanceState)
         viewModel = ViewModelProviders.of(this, CharacterViewModelFactory(args.id))
             .get(CharacterViewModel::class.java)
+        setHasOptionsMenu(true)
     }
 
     override fun onCreateView(
@@ -52,9 +54,7 @@ class CharacterFragment : Fragment() {
             setStatusBarScrimResource(scrimDark)
         }
 
-//         fix collapsed title bug
-        collapsing_layout.post { collapsing_layout.requestLayout() }
-
+        collapsing_layout.post { collapsing_layout.requestLayout() } // fix collapsed title bug
 
         viewModel.getCharacter().observe(this, Observer { character ->
             if (character == null) return@Observer
@@ -71,4 +71,12 @@ class CharacterFragment : Fragment() {
 
     }
 
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return if (item.itemId == android.R.id.home) {
+            (requireActivity() as RootActivity).navController.navigateUp()
+            true
+        } else {
+            super.onOptionsItemSelected(item)
+        }
+    }
 }
