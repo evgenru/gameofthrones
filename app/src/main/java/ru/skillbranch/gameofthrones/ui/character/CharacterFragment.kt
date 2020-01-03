@@ -6,12 +6,16 @@ import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
+import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
+import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.fragment_character.*
 import ru.skillbranch.gameofthrones.R
+import ru.skillbranch.gameofthrones.data.local.entities.HouseType
 import ru.skillbranch.gameofthrones.ui.RootActivity
 
 class CharacterFragment : Fragment() {
@@ -66,6 +70,42 @@ class CharacterFragment : Fragment() {
 
             tv_words.text = character.words
             tv_born.text = character.born
+            tv_titles.text = character.titles
+                .filter { it.isNotEmpty() }
+                .joinToString("\n")
+            tv_aliases.text = character.aliases
+                .filter { it.isNotEmpty() }
+                .joinToString("\n")
+
+            character.father?.let {
+                group_father.isVisible = true
+                btn_father.text = it.name
+                val action = CharacterFragmentDirections.actionCharacterFragmentSelf(
+                    it.id,
+                    HouseType.fromString(it.house),
+                    it.name
+                )
+                btn_father.setOnClickListener { findNavController().navigate(action) }
+            }
+
+            character.mother?.let {
+                group_mother.isVisible = true
+                btn_mother.text = it.name
+                val action = CharacterFragmentDirections.actionCharacterFragmentSelf(
+                    it.id,
+                    HouseType.fromString(it.house),
+                    it.name
+                )
+                btn_mother.setOnClickListener { findNavController().navigate(action) }
+            }
+
+            if (character.died.isNotBlank()) {
+                Snackbar.make(
+                    coordinator,
+                    "Died in : ${character.died}",
+                    Snackbar.LENGTH_INDEFINITE
+                ).show()
+            }
 
         })
 
@@ -73,10 +113,11 @@ class CharacterFragment : Fragment() {
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return if (item.itemId == android.R.id.home) {
-            (requireActivity() as RootActivity).navController.navigateUp()
+            findNavController().navigateUp()
             true
         } else {
             super.onOptionsItemSelected(item)
         }
     }
+
 }
